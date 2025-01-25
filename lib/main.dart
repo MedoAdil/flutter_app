@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_app/SignUp.dart';
 import 'package:flutter_app/home.dart';
+import 'package:flutter_app/theme.dart';
 void main() {
   runApp(MyApp());
 }
@@ -16,10 +17,8 @@ class MyApp extends StatelessWidget {
       // title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
-         colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.red,
-          brightness: Brightness.light,
-         )
+         useMaterial3: true,
+         colorScheme: MaterialTheme.lightScheme(),
       ),
       home: MyHomePage(title: 'Humanitarian Response App'),
     );
@@ -71,26 +70,27 @@ body: Padding(
             ),
           ),
         ),
-      Padding(
+        Container(
+      child: Padding(
         padding: EdgeInsets.all(10),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [Colors.red,Colors.blueAccent]
-              )
-          ),
-          child: TextButton( 
-            child: Text("Login",
+        child: Padding( 
+          padding: EdgeInsets.all(8),
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,), 
+            child: Container(
+              padding: EdgeInsets.all(20),
+              child:
+           Text("Login",
             style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold),),
+              color: Colors.white, fontWeight: FontWeight.bold),),),
           onPressed: () {
            Navigator.push(context, MaterialPageRoute(
                         builder: (context) => home(),));
           },
-          ),
         )
+      ),
+      )
       ),
       Padding(
         padding:EdgeInsets.all(10.0),

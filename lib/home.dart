@@ -24,14 +24,14 @@ class _homeState extends State<home> {
           children: <Widget>[
             UserAccountsDrawerHeader(
               accountName: Text(
-                "Eslam Medhat",
+                "Mohamed Adel",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                   color: Colors.white,
                 ),
               ),
-              accountEmail: Text("eslammedhat765@gmail.com"),
+              accountEmail: Text("mohamedadel@gmail.com"),
               currentAccountPicture: CircleAvatar(
                 backgroundImage: NetworkImage(
                     'https://avatars.githubusercontent.com/u/28203059?v=4'),
@@ -82,7 +82,7 @@ class _homeState extends State<home> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.red,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -105,7 +105,7 @@ class _homeState extends State<home> {
       ),
       floatingActionButton: FloatingActionButton(
       child: Icon(Icons.add),
-        backgroundColor: Colors.red,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         onPressed: (){
 
         },

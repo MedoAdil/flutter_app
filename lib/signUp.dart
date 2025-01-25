@@ -68,7 +68,7 @@ class _MyFormState extends State<MyForm>{
                       padding: EdgeInsets.all(8),
                       child: TextButton(
                         style: TextButton.styleFrom(
-                          backgroundColor: Colors.red
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                         ),
                         onPressed: (){
                           Navigator.push(context, MaterialPageRoute(
