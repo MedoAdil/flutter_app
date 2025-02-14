@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/myadds.dart';
 
 class home extends StatefulWidget {
 
@@ -39,12 +40,6 @@ class _homeState extends State<home> {
                 backgroundImage: NetworkImage(
                     'https://avatars.githubusercontent.com/u/28203059?v=4'),
               ),
-              otherAccountsPictures: <Widget>[
-                CircleAvatar(
-                  backgroundImage: NetworkImage('https://user-images.githubusercontent.com/28203059/159008453-1fb9a75a-7503-41ae-9fe2-b70d8bdccc57.png'
-                ),
-                ),
-              ],
             ),
             ListTile(
               title: Text("Sent"),
@@ -98,16 +93,20 @@ class _homeState extends State<home> {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Badge(child: Icon(Icons.notifications_sharp)),
-            label: 'Notifications',
+            icon: Badge(child: Icon(Icons.chat)),
+            label: 'News Feed',
           ),
           NavigationDestination(
             icon: Badge(
               label: Text('2'),
-              child: Icon(Icons.messenger_sharp),
+              child: Icon(Icons.note_add),
             ),
-            label: 'Messages',
+            label: 'My Ads',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.bookmark),
+            label: 'Bookmarks',
+          )
         ],
       ),
       body: <Widget>[
@@ -124,6 +123,7 @@ class _homeState extends State<home> {
                   children: [
                     const SizedBox(width: 10),
                     FloatingActionButton.extended(
+                      heroTag: "btn1",
                   onPressed: () {
                     // Add your onPressed code here!
                   },
@@ -132,6 +132,7 @@ class _homeState extends State<home> {
                 ),
                 const SizedBox(width: 16),
                     FloatingActionButton.extended(
+                      heroTag: "btn2",
                   onPressed: () {
                     // Add your onPressed code here!
                   },
@@ -146,6 +147,7 @@ class _homeState extends State<home> {
                   children: [
                     const SizedBox(width: 10),
                     FloatingActionButton.extended(
+                      heroTag: "btn3",
                   onPressed: () {
                     // Add your onPressed code here!
                   },
@@ -154,6 +156,7 @@ class _homeState extends State<home> {
                 ),
                 const SizedBox(width: 16),
                     FloatingActionButton.extended(
+                      heroTag: "btn4",
                   onPressed: () {
                     // Add your onPressed code here!
                   },
@@ -168,6 +171,7 @@ class _homeState extends State<home> {
                   children: [
                     const SizedBox(width: 10),
                     FloatingActionButton.extended(
+                      heroTag: "btn5",
                   onPressed: () {
                     // Add your onPressed code here!
                   },
@@ -176,6 +180,7 @@ class _homeState extends State<home> {
                 ),
                 const SizedBox(width: 16),
                     FloatingActionButton.extended(
+                      heroTag: "btn6",
                   onPressed: () {
                     // Add your onPressed code here!
                   },
@@ -253,13 +258,43 @@ class _homeState extends State<home> {
             );
           },
         ),
+
+      ///Bookmark Page
+            const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Column(
+            children: <Widget>[
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.notifications_sharp),
+                  title: Text('Notification 1'),
+                  subtitle: Text('This is a notification'),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.notifications_sharp),
+                  title: Text('Notification 2'),
+                  subtitle: Text('This is a notification'),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+
       ][currentPageIndex],
       
       
       floatingActionButton: FloatingActionButton(
+        heroTag: "btn7",
       child: Icon(Icons.add),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        onPressed: (){}
+        onPressed: (){
+          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => MyAdds(),
+                          ));
+        }
       )
     );
   }
