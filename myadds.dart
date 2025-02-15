@@ -59,21 +59,21 @@ class _MyAddsState extends State<MyAdds> {
     List<Widget> formFields = [];
 
     if (selectedCategory == 'Services Available' || selectedCategory == 'Services Required') {
-      formFields.add(buildDropdown('Type of Help', helpTypes));
+      formFields.add(buildDropdown('Type of Help', helpTypes, Icons.help));
     } else if (selectedCategory == 'Missing Person') {
-      formFields.add(buildTextField('Person Name'));
+      formFields.add(buildTextField('Person Name', Icons.person));
     } else if (selectedCategory == 'Missing Items') {
-      formFields.add(buildTextField('Type of Item'));
+      formFields.add(buildTextField('Type of Item', Icons.inventory));
     } else if (selectedCategory == 'Lost Vehicle') {
-      formFields.add(buildTextField('Type of Vehicle'));
+      formFields.add(buildTextField('Type of Vehicle', Icons.directions_car));
     } else if (selectedCategory == 'Report A Violation') {
-      formFields.add(buildTextField('Type of Violation'));
+      formFields.add(buildTextField('Type of Violation', Icons.report));
     }
 
-    formFields.add(buildTextField('Description'));
-    formFields.add(buildDropdown('Choose State', states));
-    formFields.add(buildTextField('Address'));
-    formFields.add(buildTextField('Mobile Number'));
+    formFields.add(buildTextField('Description', Icons.description));
+    formFields.add(buildDropdown('Choose State', states, Icons.location_on));
+    formFields.add(buildTextField('Address', Icons.home));
+    formFields.add(buildTextField('Mobile Number', Icons.phone));
     formFields.add(buildLocationPicker());
     formFields.add(buildImagePicker());
     formFields.add(SizedBox(height: 20));
@@ -84,21 +84,30 @@ class _MyAddsState extends State<MyAdds> {
       children: formFields,
     );
   }
-
-  Widget buildTextField(String label) {
+// A helper function to create text fields with labels
+  Widget buildTextField(String label, IconData icon) {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: TextField(
-        decoration: InputDecoration(labelText: label, border: OutlineInputBorder()),
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(icon),
+        ),
       ),
     );
   }
 
-  Widget buildDropdown(String label, List<String> items) {
+// A helper function to create dropdowm menu with labels
+  Widget buildDropdown(String label, List<String> items, IconData icon) {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(labelText: label, border: OutlineInputBorder()),
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+          prefixIcon: Icon(icon),
+        ),
         items: items.map((String item) {
           return DropdownMenuItem<String>(
             value: item,
@@ -110,6 +119,7 @@ class _MyAddsState extends State<MyAdds> {
     );
   }
 
+// A helper function for location picker bottom
   Widget buildLocationPicker() {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
@@ -120,6 +130,7 @@ class _MyAddsState extends State<MyAdds> {
     );
   }
 
+// A helper function for upload picture bottom
   Widget buildImagePicker() {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
@@ -130,6 +141,7 @@ class _MyAddsState extends State<MyAdds> {
     );
   }
 
+// A helper function for save data bottom
   Widget buildSaveButton() {
     return Center(
       child: ElevatedButton(
