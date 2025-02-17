@@ -37,7 +37,7 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         // backgroundColor: Colors.red, 
         title: Text(title),
-        leading: Icon(Icons.icecream_outlined),
+        // leading: Icon(Icons.emergency_sharp),
       ),
 body: Padding(
   padding: EdgeInsets.all(20.0),

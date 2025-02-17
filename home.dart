@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/myadds.dart';
+import 'package:flutter_app/main.dart';
 
 class home extends StatefulWidget {
 
@@ -10,6 +11,7 @@ class home extends StatefulWidget {
 class _homeState extends State<home> {
   int currentPageIndex = 0;
 
+  
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -41,38 +43,58 @@ class _homeState extends State<home> {
                     'https://avatars.githubusercontent.com/u/28203059?v=4'),
               ),
             ),
-            ListTile(
-              title: Text("Sent"),
-              leading: Icon(Icons.send),
+             ListTile(
+              title: Text("Settings"),
+              leading: Icon(Icons.settings),
+              onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => Settings(),));
+                  }
             ),
-            Divider(
-              thickness: 1,
-            ),
+            Divider(thickness: 1),
             ListTile(
-              title: Text("Inbox"),
+              title: Text("Privacy Policy"),
               leading: Icon(Icons.inbox),
+              onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => Privacy(),));
+                  }
             ),
+            Divider(thickness: 1),
             ListTile(
-              title: Text("Stared"),
+              title: Text("Terms and Conditions"),
               leading: Icon(Icons.star),
+              onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => Terms(),));
+                  }
             ),
-            Divider(
-              thickness: 1,
-            ),
+            Divider(thickness: 1),
             ListTile(
-              title: Text("Archive"),
+              title: Text("About Us"),
               leading: Icon(Icons.archive),
+              onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => Aboutus(),));
+                  }
             ),
+            Divider(thickness: 1),
             ListTile(
-              title: Text("Chat"),
+              title: Text("Contact Us"),
               leading: Icon(Icons.chat),
+              onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => Contactus(),));
+                  }
             ),
-            Divider(
-              thickness: 1,
-            ),
+            Divider(thickness: 1),
             ListTile(
               title: Text("Log out"),
               leading: Icon(Icons.logout),
+              onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => MyApp(),));
+                  }
             ),
           ],
         ),
@@ -296,6 +318,61 @@ class _homeState extends State<home> {
                           ));
         }
       )
+    );
+  }
+}
+
+class Settings extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Settings')),
+      body: Center(child: Text("Welcome to page")),
+    );
+  }
+}
+
+class Privacy extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Privacy Policy')),
+      body: Center(child: Text("Welcome to page")),
+    );
+  }
+}
+
+class Terms extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Terms and Conditions')),
+      body: Center(child: Text("Welcome to page")),
+    );
+  }
+}
+
+class Aboutus extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('About Us')),
+      body: Center(child: Text("Welcome to page")),
+    );
+  }
+}
+
+class Contactus extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Contact Us')),
+      body: Center(child: Text("Welcome to page")),
     );
   }
 }

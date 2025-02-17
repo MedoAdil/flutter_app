@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MyAdds extends StatefulWidget {
   @override
@@ -15,14 +19,25 @@ class _MyAddsState extends State<MyAdds> {
     'Lost Vehicle',
     'Report A Violation'
   ];
-
   final List<String> helpTypes = ['Doctor', 'Blood', 'Home'];
   final List<String> states = ['Khartoum State', 'Kassala State', 'River Nile State'];
+  
+  LatLng? selectedLocation;
+  File? image;
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        image = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("My Adds")),
+      appBar: AppBar(title: Text("MyAdds")),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
@@ -59,21 +74,21 @@ class _MyAddsState extends State<MyAdds> {
     List<Widget> formFields = [];
 
     if (selectedCategory == 'Services Available' || selectedCategory == 'Services Required') {
-      formFields.add(buildDropdown('Type of Help', helpTypes, Icons.help));
+      formFields.add(buildDropdown('Type of Help', helpTypes));
     } else if (selectedCategory == 'Missing Person') {
-      formFields.add(buildTextField('Person Name', Icons.person));
+      formFields.add(buildTextField('Person Name'));
     } else if (selectedCategory == 'Missing Items') {
-      formFields.add(buildTextField('Type of Item', Icons.inventory));
+      formFields.add(buildTextField('Type of Item'));
     } else if (selectedCategory == 'Lost Vehicle') {
-      formFields.add(buildTextField('Type of Vehicle', Icons.directions_car));
+      formFields.add(buildTextField('Type of Vehicle'));
     } else if (selectedCategory == 'Report A Violation') {
-      formFields.add(buildTextField('Type of Violation', Icons.report));
+      formFields.add(buildTextField('Type of Violation'));
     }
 
-    formFields.add(buildTextField('Description', Icons.description));
-    formFields.add(buildDropdown('Choose State', states, Icons.location_on));
-    formFields.add(buildTextField('Address', Icons.home));
-    formFields.add(buildTextField('Mobile Number', Icons.phone));
+    formFields.add(buildTextField('Description'));
+    formFields.add(buildDropdown('Choose State', states));
+    formFields.add(buildTextField('Address'));
+    formFields.add(buildTextField('Mobile Number'));
     formFields.add(buildLocationPicker());
     formFields.add(buildImagePicker());
     formFields.add(SizedBox(height: 20));
@@ -84,30 +99,21 @@ class _MyAddsState extends State<MyAdds> {
       children: formFields,
     );
   }
-// A helper function to create text fields with labels
-  Widget buildTextField(String label, IconData icon) {
+
+  Widget buildTextField(String label) {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: TextField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(icon),
-        ),
+        decoration: InputDecoration(labelText: label, border: OutlineInputBorder()),
       ),
     );
   }
 
-// A helper function to create dropdowm menu with labels
-  Widget buildDropdown(String label, List<String> items, IconData icon) {
+  Widget buildDropdown(String label, List<String> items) {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(icon),
-        ),
+        decoration: InputDecoration(labelText: label, border: OutlineInputBorder()),
         items: items.map((String item) {
           return DropdownMenuItem<String>(
             value: item,
@@ -119,35 +125,96 @@ class _MyAddsState extends State<MyAdds> {
     );
   }
 
-// A helper function for location picker bottom
   Widget buildLocationPicker() {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
       child: ElevatedButton(
-        onPressed: () {},
-        child: Text('Pick Location'),
+        onPressed: () async {
+          LatLng? pickedLocation = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LocationPickerScreen()),
+          );
+
+          if (pickedLocation != null) {
+            setState(() {
+              selectedLocation = pickedLocation;
+            });
+          }
+        },
+        child: Text(selectedLocation == null
+            ? 'Pick Location'
+            : 'Location Selected: ${selectedLocation!.latitude}, ${selectedLocation!.longitude}'),
       ),
     );
   }
 
-// A helper function for upload picture bottom
   Widget buildImagePicker() {
     return Padding(
       padding: EdgeInsets.only(bottom: 10),
-      child: ElevatedButton(
-        onPressed: () {},
-        child: Text('Upload Picture'),
+      child: Column(
+        children: [
+          ElevatedButton(
+            onPressed: _pickImage,
+            child: Text('Upload Picture'),
+          ),
+          if (image != null) Image.file(image!, height: 100),
+        ],
       ),
     );
   }
 
-// A helper function for save data bottom
   Widget buildSaveButton() {
     return Center(
       child: ElevatedButton(
         onPressed: () {},
         child: Text('Save Data'),
-        style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 50, vertical: 5)),
+        style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15)),
+      ),
+    );
+  }
+}
+
+// Location Picker Screen
+class LocationPickerScreen extends StatefulWidget {
+  @override
+  _LocationPickerScreenState createState() => _LocationPickerScreenState();
+}
+
+class _LocationPickerScreenState extends State<LocationPickerScreen> {
+  LatLng _currentPosition = LatLng(15.5007, 32.5599); // Default location (Khartoum)
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  Future<void> _getUserLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _currentPosition = LatLng(position.latitude, position.longitude);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Select Location")),
+      body: GoogleMap(
+        initialCameraPosition: CameraPosition(target: _currentPosition, zoom: 14),
+        markers: {Marker(markerId: MarkerId("selected"), position: _currentPosition)},
+        onTap: (LatLng location) {
+          setState(() {
+            _currentPosition = location;
+          });
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pop(context, _currentPosition);
+        },
+        child: Icon(Icons.check),
       ),
     );
   }
