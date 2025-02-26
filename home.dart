@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/myadds.dart';
 import 'package:flutter_app/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart'; // For launching Google Maps
 
 class home extends StatefulWidget {
 
@@ -17,13 +18,23 @@ Stream<QuerySnapshot> _fetchData() {
         .orderBy('timestamp', descending: true) // Order by timestamp
         .snapshots();
   }
+
+/// Function to go direct to the location selected in Incident
+  void _openGoogleMaps(double latitude, double longitude) async {
+    final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not open Google Maps';
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
      return Scaffold(
       appBar: AppBar(
-        title: Text('Gmail Clone'),
+        title: Text('Welcome'),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
@@ -237,7 +248,12 @@ Stream<QuerySnapshot> _fetchData() {
               return {
                 'description': doc['description'],
                 'category': doc['category'],
+                'state': doc['state'],
+                'address': doc['address'],
+                'mobileNumber': doc['mobileNumber'],
                 'imageUrl': doc['imageUrl'],
+                'latitude': doc['location']['latitude'],  // Get latitude
+                'longitude': doc['location']['longitude'], // Get longitude
                 'postedOn': (doc['timestamp'] as Timestamp).toDate(),
               };
             }).toList();
@@ -250,8 +266,9 @@ Stream<QuerySnapshot> _fetchData() {
                   height: 136,
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.0),
                   decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE0E0E0)),
-                      borderRadius: BorderRadius.circular(8.0)),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                   padding: const EdgeInsets.all(8),
                   child: Row(
                     children: [
@@ -261,6 +278,12 @@ Stream<QuerySnapshot> _fetchData() {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
+                              item['category'],
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
                               item['description'],
                               style: const TextStyle(fontWeight: FontWeight.bold),
                               maxLines: 2,
@@ -268,40 +291,63 @@ Stream<QuerySnapshot> _fetchData() {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              "${item['category']} · ${item['postedOn']}",
+                              "${item['state']} · ${item['address']}",
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "${item['mobileNumber']} · ${item['postedOn']}",
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             const SizedBox(height: 8),
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icons.bookmark_border_rounded,
-                                Icons.share,
-                                Icons.more_vert
-                              ].map((e) {
-                                return InkWell(
-                                  onTap: () {},
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Icon(e, size: 16),
+                                InkWell(
+                                  onTap: () => _openGoogleMaps(item['latitude'], item['longitude']),
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(right: 8.0),
+                                    child: Icon(Icons.location_on, size: 18, color: Colors.blue),
                                   ),
-                                );
-                              }).toList(),
-                            )
+                                ),
+                                InkWell(
+                                  onTap: () {},
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(right: 8.0),
+                                    child: Icon(Icons.bookmark_border_rounded, size: 16),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {},
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(right: 8.0),
+                                    child: Icon(Icons.share, size: 16),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {},
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(right: 8.0),
+                                    child: Icon(Icons.more_vert, size: 16),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
                       Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(8.0),
-                            image: DecorationImage(
-                              fit: BoxFit.cover,
-                              image: NetworkImage(item['imageUrl']),
-                            ),
-                          )),
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          borderRadius: BorderRadius.circular(8.0),
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: NetworkImage(item['imageUrl']),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );
