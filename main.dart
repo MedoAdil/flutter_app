@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_app/SignUp.dart';
+import 'package:flutter_app/login_screen.dart';
 import 'package:flutter_app/home.dart';
 import 'package:flutter_app/theme.dart';
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
   runApp(MyApp());
 }
 
@@ -20,105 +28,195 @@ class MyApp extends StatelessWidget {
          useMaterial3: true,
          colorScheme: MaterialTheme.lightScheme(),
       ),
-      home: MyHomePage(title: 'Humanitarian Response App'),
+      home: OnboardingPage(pages: onboardingPages),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
+class OnboardingPageModel {
   final String title;
+  final String description;
+  final String image;
+  final Color bgColor;
+  final Color textColor;
+
+  OnboardingPageModel({
+    required this.title,
+    required this.description,
+    required this.image,
+    this.bgColor = Colors.blue,
+    this.textColor = Colors.white,
+  });
+}
+
+class OnboardingPage extends StatefulWidget {
+  final List<OnboardingPageModel> pages;
+
+  const OnboardingPage({Key? key, required this.pages}) : super(key: key);
+
+  @override
+  _OnboardingPageState createState() => _OnboardingPageState();
+}
+
+class _OnboardingPageState extends State<OnboardingPage> {
+  int _currentPage = 0;
+  final PageController _pageController = PageController(initialPage: 0);
+
+  void _goToLogin(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // backgroundColor: Colors.red, 
-        title: Text(title),
-        // leading: Icon(Icons.emergency_sharp),
-      ),
-body: Padding(
-  padding: EdgeInsets.all(20.0),
-  child: Column(
-    children: <Widget> [
-      Container(
-        width: 200,
-        height: 200,
-        child: Image(
-          image:
-          AssetImage('images/human.png'))
-      ), 
-      Padding(
-          padding: EdgeInsets.all(20.0),
-          child: TextField(
-            keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: "Email Address",
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-      Padding(
-          padding: EdgeInsets.all(20.0),
-          child: TextField(
-            obscureText: true,
-            decoration: InputDecoration(
-              labelText: "Password",
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-        Container(
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: Padding( 
-          padding: EdgeInsets.all(8),
-          child: TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,), 
-            child: Container(
-              padding: EdgeInsets.all(20),
-              child:
-           Text("Login",
-            style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold),),),
-          onPressed: () {
-           Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => home(),));
-          },
-        )
-      ),
-      )
-      ),
-      Padding(
-        padding:EdgeInsets.all(10.0),
-        child: RichText(
-          text: TextSpan(
-            text: 'Dont have an account?',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 15),
-            children: <TextSpan>[
-              TextSpan(
-                text: 'Sign Up',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 15),
-                  recognizer: TapGestureRecognizer()
-                  ..onTap = (){
-                      Navigator.push(context, MaterialPageRoute(
-                                builder: (context) => MyForm(),));
-                  }
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        color: widget.pages[_currentPage].bgColor,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: widget.pages.length,
+                  onPageChanged: (idx) {
+                    setState(() {
+                      _currentPage = idx;
+                    });
+                  },
+                  itemBuilder: (context, idx) {
+                    final _item = widget.pages[idx];
+                    return Column(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Image.asset(_item.image),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  _item.title,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: _item.textColor,
+                                      ),
+                                ),
+                              ),
+                              Container(
+                                constraints: BoxConstraints(maxWidth: 280),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24.0, vertical: 8.0),
+                                child: Text(
+                                  _item.description,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(color: _item.textColor),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    );
+                  },
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: widget.pages
+                    .map((item) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: _currentPage == widget.pages.indexOf(item)
+                              ? 20
+                              : 4,
+                          height: 4,
+                          margin: const EdgeInsets.all(2.0),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10.0)),
+                        ))
+                    .toList(),
+              ),
+              SizedBox(
+                height: 100,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => _goToLogin(context),
+                      child: Text(
+                        "Skip",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        if (_currentPage == widget.pages.length - 1) {
+                          _goToLogin(context);
+                        } else {
+                          setState(() {
+                            _currentPage++;
+                          });
+                          _pageController.animateToPage(
+                            _currentPage,
+                            duration: Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      },
+                      child: Text(
+                        _currentPage == widget.pages.length - 1
+                            ? "Finish"
+                            : "Next",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               )
-            ]
-          )
+            ],
           ),
-         )
-    ],
-    )
-)
-);
+        ),
+      ),
+    );
   }
 }
+
+List<OnboardingPageModel> onboardingPages = [
+  OnboardingPageModel(
+    title: "Welcome to the App",
+    description: "Discover amazing features and improve your experience.",
+    image: "images/human.png",
+    bgColor: Colors.blue,
+    textColor: Colors.white,
+  ),
+  OnboardingPageModel(
+    title: "Stay Connected",
+    description: "Keep in touch with friends and family anytime, anywhere.",
+    image: "images/human.png",
+    bgColor: Colors.green,
+    textColor: Colors.white,
+  ),
+  OnboardingPageModel(
+    title: "Get Started",
+    description: "Let's begin the journey together!",
+    image: "images/human.png",
+    bgColor: Colors.purple,
+    textColor: Colors.white,
+  ),
+];

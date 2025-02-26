@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/myadds.dart';
 import 'package:flutter_app/main.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class home extends StatefulWidget {
 
@@ -10,7 +11,12 @@ class home extends StatefulWidget {
 
 class _homeState extends State<home> {
   int currentPageIndex = 0;
-
+Stream<QuerySnapshot> _fetchData() {
+    return FirebaseFirestore.instance
+        .collection('user_ads')
+        .orderBy('timestamp', descending: true) // Order by timestamp
+        .snapshots();
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -216,30 +222,97 @@ class _homeState extends State<home> {
         ),
         
 
-        /// Notifications page
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 1'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 2'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-            ],
-          ),
-        ),
+        /// News Feed page
+             Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _fetchData(), // Real-time stream of Firebase data
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-        /// Messages page
+             var _articles = snapshot.data!.docs.map((doc) {
+              return {
+                'description': doc['description'],
+                'category': doc['category'],
+                'imageUrl': doc['imageUrl'],
+                'postedOn': (doc['timestamp'] as Timestamp).toDate(),
+              };
+            }).toList();
+
+            return ListView.builder(
+              itemCount: _articles.length,
+              itemBuilder: (BuildContext context, int index) {
+                final item = _articles[index];
+                return Container(
+                  height: 136,
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.0),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE0E0E0)),
+                      borderRadius: BorderRadius.circular(8.0)),
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item['description'],
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "${item['category']} · ${item['postedOn']}",
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icons.bookmark_border_rounded,
+                                Icons.share,
+                                Icons.more_vert
+                              ].map((e) {
+                                return InkWell(
+                                  onTap: () {},
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Icon(e, size: 16),
+                                  ),
+                                );
+                              }).toList(),
+                            )
+                          ],
+                        ),
+                      ),
+                      Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey,
+                            borderRadius: BorderRadius.circular(8.0),
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image: NetworkImage(item['imageUrl']),
+                            ),
+                          )),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    ),
+
+        /// My Ads page
         ListView.builder(
           reverse: true,
           itemCount: 2,
