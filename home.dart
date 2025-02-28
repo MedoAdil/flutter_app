@@ -3,6 +3,7 @@ import 'package:flutter_app/myadds.dart';
 import 'package:flutter_app/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart'; // For launching Google Maps
+import 'package:firebase_auth/firebase_auth.dart';
 
 class home extends StatefulWidget {
 
@@ -12,12 +13,26 @@ class home extends StatefulWidget {
 
 class _homeState extends State<home> {
   int currentPageIndex = 0;
-Stream<QuerySnapshot> _fetchData() {
+final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+/// Get the user_ads collection from firestore
+Stream<QuerySnapshot> _fetchData({bool isMyAds = false}) {
+  if (isMyAds) {
+    // Fetch only the current user's ads
+    final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
     return FirebaseFirestore.instance
         .collection('user_ads')
+        .where('uid', isEqualTo: currentUserId) // Filter by UID
         .orderBy('timestamp', descending: true) // Order by timestamp
         .snapshots();
+  } else {
+    // Fetch all ads (for News Feed)
+    return FirebaseFirestore.instance
+        .collection('user_ads')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
   }
+}
 
 /// Function to go direct to the location selected in Incident
   void _openGoogleMaps(double latitude, double longitude) async {
@@ -29,6 +44,7 @@ Stream<QuerySnapshot> _fetchData() {
     }
   }
   
+/// The Navigation Drawer List
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -60,15 +76,6 @@ Stream<QuerySnapshot> _fetchData() {
                     'https://avatars.githubusercontent.com/u/28203059?v=4'),
               ),
             ),
-             ListTile(
-              title: Text("Settings"),
-              leading: Icon(Icons.settings),
-              onTap: (){
-                      Navigator.push(context, MaterialPageRoute(
-                                builder: (context) => Settings(),));
-                  }
-            ),
-            Divider(thickness: 1),
             ListTile(
               title: Text("Privacy Policy"),
               leading: Icon(Icons.inbox),
@@ -117,6 +124,7 @@ Stream<QuerySnapshot> _fetchData() {
         ),
       ),
 
+/// Bottom Navigation Drawer
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
           setState(() {
@@ -359,69 +367,141 @@ Stream<QuerySnapshot> _fetchData() {
     ),
 
         /// My Ads page
-        ListView.builder(
-          reverse: true,
-          itemCount: 2,
+          Center(
+  child: Container(
+    constraints: const BoxConstraints(maxWidth: 400),
+    child: StreamBuilder<QuerySnapshot>(
+      stream: _fetchData(isMyAds: true),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(child: CircularProgressIndicator());
+    }
+    if (snapshot.hasError) {
+      print('Error fetching data: ${snapshot.error}');
+      return Center(child: Text('Error loading data'));
+    }
+    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+      return Center(child: Text('No ads found'));
+    }
+
+    print('Fetched ${snapshot.data!.docs.length} documents'); // Debug log
+ 
+        var _articles = snapshot.data!.docs.map((doc) {
+          return {
+            'description': doc['description'],
+            'category': doc['category'],
+            'state': doc['state'],
+            'address': doc['address'],
+            'mobileNumber': doc['mobileNumber'],
+            'imageUrl': doc['imageUrl'],
+            'latitude': doc['location']['latitude'],
+            'longitude': doc['location']['longitude'],
+            'postedOn': (doc['timestamp'] as Timestamp).toDate(),
+          };
+        }).toList();
+
+        return ListView.builder(
+          itemCount: _articles.length,
           itemBuilder: (BuildContext context, int index) {
-            if (index == 0) {
-              return Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  margin: const EdgeInsets.all(8.0),
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(8.0),
+            final item = _articles[index];
+            return Container(
+              height: 136,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFE0E0E0)),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['category'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          item['description'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "${item['state']} · ${item['address']}",
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "${item['mobileNumber']} · ${item['postedOn']}",
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: () => _openGoogleMaps(item['latitude'], item['longitude']),
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 8.0),
+                                child: Icon(Icons.location_on, size: 18, color: Colors.blue),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {},
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 8.0),
+                                child: Icon(Icons.bookmark_border_rounded, size: 16),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {},
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 8.0),
+                                child: Icon(Icons.share, size: 16),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {},
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 8.0),
+                                child: Icon(Icons.more_vert, size: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Text(
-                    'Hello',
-                    style: theme.textTheme.bodyLarge!
-                        .copyWith(color: theme.colorScheme.onPrimary),
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.circular(8.0),
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        image: NetworkImage(item['imageUrl']),
+                      ),
+                    ),
                   ),
-                ),
-              );
-            }
-            return Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                margin: const EdgeInsets.all(8.0),
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Text(
-                  'Hi!',
-                  style: theme.textTheme.bodyLarge!
-                      .copyWith(color: theme.colorScheme.onPrimary),
-                ),
+                ],
               ),
             );
           },
-        ),
+        );
+      },
+    ),
+  ),
+),
 
       ///Bookmark Page
-            const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 1'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 2'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-            ],
-          ),
-        ),
+            
 
 
       ][currentPageIndex],

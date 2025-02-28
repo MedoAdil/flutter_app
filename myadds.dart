@@ -6,6 +6,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class MyAdds extends StatefulWidget {
   @override
@@ -81,6 +83,7 @@ class _MyAddsState extends State<MyAdds> {
         },
         'imageUrl': imageUrl,
         'timestamp': FieldValue.serverTimestamp(),
+        'uid': FirebaseAuth.instance.currentUser!.uid, // Add the user's UID
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Data saved successfully!")));
