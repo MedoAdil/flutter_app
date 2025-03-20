@@ -14,6 +14,29 @@ class home extends StatefulWidget {
 class _homeState extends State<home> {
   int currentPageIndex = 0;
 final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  String? userName;
+  String? userEmail;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserDetails();
+  }
+
+  /// Fetch user details from Firestore
+  void fetchUserDetails() async {
+    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .get();
+
+    if (userSnapshot.exists) {
+      setState(() {
+        userName = userSnapshot['firstName'] + " " + userSnapshot['secondName'];
+        userEmail = userSnapshot['email'];
+      });
+    }
+  }
 
 /// Get the user_ads collection from firestore
 Stream<QuerySnapshot> _fetchData({bool isMyAds = false}) {
@@ -48,7 +71,7 @@ Stream<QuerySnapshot> _fetchData({bool isMyAds = false}) {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-     return Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text('Welcome'),
         actions: [
@@ -63,17 +86,17 @@ Stream<QuerySnapshot> _fetchData({bool isMyAds = false}) {
           children: <Widget>[
             UserAccountsDrawerHeader(
               accountName: Text(
-                "Mohamed Adel",
+                userName ?? "Loading...",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                   color: Colors.white,
                 ),
               ),
-              accountEmail: Text("mohamedadel@gmail.com"),
+              accountEmail: Text(userEmail ?? "Loading..."),
               currentAccountPicture: CircleAvatar(
                 backgroundImage: NetworkImage(
-                    'https://avatars.githubusercontent.com/u/28203059?v=4'),
+                    'https://th.bing.com/th/id/OIP.Ii15573m21uyos5SZQTdrAHaHa?rs=1&pid=ImgDetMain'),
               ),
             ),
             ListTile(
@@ -158,89 +181,130 @@ Stream<QuerySnapshot> _fetchData({bool isMyAds = false}) {
       ),
       body: <Widget>[
 
-        /// Home page
-         Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(width: 10),
-                    FloatingActionButton.extended(
-                      heroTag: "btn1",
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
-                  label: const Text('Service Available'),
-                  icon: const Icon(Icons.volunteer_activism),
+        Center(
+  child: Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // First Row of Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 150, // Fixed width for all buttons
+              height: 50,  // Fixed height for all buttons
+              child: FloatingActionButton.extended(
+                heroTag: "btn1",
+                onPressed: () {
+                  // Add your onPressed code here!
+                },
+                label: const Text(
+                  'Service Available',
+                  textAlign: TextAlign.center, // Center-align text
                 ),
-                const SizedBox(width: 16),
-                    FloatingActionButton.extended(
-                      heroTag: "btn2",
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
-                  label: const Text('Service Required'),
-                  icon: const Icon(Icons.handshake),
-                ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(width: 10),
-                    FloatingActionButton.extended(
-                      heroTag: "btn3",
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
-                  label: const Text(' Missing  Person '),
-                  icon: const Icon(Icons.person_search),
-                ),
-                const SizedBox(width: 16),
-                    FloatingActionButton.extended(
-                      heroTag: "btn4",
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
-                  label: const Text(' Missing   Items '),
-                  icon: const Icon(Icons.category),
-                ),
-              ],
+                icon: const Icon(Icons.volunteer_activism),
               ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(width: 10),
-                    FloatingActionButton.extended(
-                      heroTag: "btn5",
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
-                  label: const Text('  Lost  Vehicles  '),
-                  icon: const Icon(Icons.car_crash),
-                ),
-                const SizedBox(width: 16),
-                    FloatingActionButton.extended(
-                      heroTag: "btn6",
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
-                  label: const Text('Report Violation'),
-                  icon: const Icon(Icons.warning),
-                ),
-              ],),
-              ],
             ),
-          ),
+            const SizedBox(width: 16), // Spacing between buttons
+            SizedBox(
+              width: 150, // Fixed width for all buttons
+              height: 50,  // Fixed height for all buttons
+              child: FloatingActionButton.extended(
+                heroTag: "btn2",
+                onPressed: () {
+                  // Add your onPressed code here!
+                },
+                label: const Text(
+                  'Service Required',
+                  textAlign: TextAlign.center, // Center-align text
+                ),
+                icon: const Icon(Icons.handshake),
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 16), // Spacing between rows
+        // Second Row of Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 150, // Fixed width for all buttons
+              height: 50,  // Fixed height for all buttons
+              child: FloatingActionButton.extended(
+                heroTag: "btn3",
+                onPressed: () {
+                  // Add your onPressed code here!
+                },
+                label: const Text(
+                  'Missing Person',
+                  textAlign: TextAlign.center, // Center-align text
+                ),
+                icon: const Icon(Icons.person_search),
+              ),
+            ),
+            const SizedBox(width: 16), // Spacing between buttons
+            SizedBox(
+              width: 150, // Fixed width for all buttons
+              height: 50,  // Fixed height for all buttons
+              child: FloatingActionButton.extended(
+                heroTag: "btn4",
+                onPressed: () {
+                  // Add your onPressed code here!
+                },
+                label: const Text(
+                  'Missing Items',
+                  textAlign: TextAlign.center, // Center-align text
+                ),
+                icon: const Icon(Icons.category),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16), // Spacing between rows
+        // Third Row of Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 150, // Fixed width for all buttons
+              height: 50,  // Fixed height for all buttons
+              child: FloatingActionButton.extended(
+                heroTag: "btn5",
+                onPressed: () {
+                  // Add your onPressed code here!
+                },
+                label: const Text(
+                  'Lost Vehicles',
+                  textAlign: TextAlign.center, // Center-align text
+                ),
+                icon: const Icon(Icons.car_crash),
+              ),
+            ),
+            const SizedBox(width: 16), // Spacing between buttons
+            SizedBox(
+              width: 150, // Fixed width for all buttons
+              height: 50,  // Fixed height for all buttons
+              child: FloatingActionButton.extended(
+                heroTag: "btn6",
+                onPressed: () {
+                  // Add your onPressed code here!
+                },
+                label: const Text(
+                  'Report Violation',
+                  textAlign: TextAlign.center, // Center-align text
+                ),
+                icon: const Icon(Icons.warning),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+),
         
-
         /// News Feed page
              Center(
       child: Container(
@@ -533,45 +597,209 @@ class Settings extends StatelessWidget {
 }
 
 class Privacy extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Privacy Policy')),
-      body: Center(child: Text("Welcome to page")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Privacy Policy',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'At Humanitarian Response App, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our app.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '1. Information We Collect',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'We may collect personal information such as your name, email address, and location when you register or report incidents.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '2. How We Use Your Information',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Your information is used to provide you with real-time updates, improve our services, and ensure the security of the app.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '3. Data Security',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'We use Firebase Authentication and Firestore to securely store your data. All data is encrypted in transit and at rest.',
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class Terms extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Terms and Conditions')),
-      body: Center(child: Text("Welcome to page")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Terms and Conditions',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'By using the Humanitarian Response App, you agree to the following terms and conditions:',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '1. User Responsibilities',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'You are responsible for providing accurate information and using the app for lawful purposes only.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '2. Prohibited Activities',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'You may not use the app to spread false information, harass others, or engage in illegal activities.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '3. Intellectual Property',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'All content and features of the app are the property of Humanitarian Response App and are protected by intellectual property laws.',
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class Aboutus extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('About Us')),
-      body: Center(child: Text("Welcome to page")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'About Us',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Welcome to the Humanitarian Response App!',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Our Mission',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'We aim to provide a unified platform for real-time communication, incident reporting, and resource allocation during humanitarian crises.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Our Vision',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'To create a world where technology empowers communities to respond effectively to emergencies and save lives.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Our Team',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'We are a team of developers, designers, and humanitarian experts dedicated to making a difference.',
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class Contactus extends StatelessWidget {
+  // Function to open URLs
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Contact Us')),
-      body: Center(child: Text("Welcome to page")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Get in touch with us!',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.phone_android, size: 40, color: Colors.green),
+                  onPressed: () => _launchURL('https://wa.me/yourwhatsappnumber'),
+                ),
+                SizedBox(width: 20),
+                IconButton(
+                  icon: Icon(Icons.facebook, size: 40, color: Colors.blue),
+                  onPressed: () => _launchURL('https://facebook.com/yourfacebookpage'),
+                ),
+                SizedBox(width: 20),
+                IconButton(
+                  icon: Icon(Icons.phone_callback_outlined, size: 40, color: Colors.blue),
+                  onPressed: () => _launchURL('https://twitter.com/yourtwitterhandle'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

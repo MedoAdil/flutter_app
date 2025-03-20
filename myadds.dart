@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_app/home.dart';
 
 
 class MyAdds extends StatefulWidget {
@@ -24,7 +25,7 @@ class _MyAddsState extends State<MyAdds> {
   String? mobileNumber;
   LatLng? selectedLocation;
   File? image;
-  final String defaultImageUrl = 'https://avatars.githubusercontent.com/u/28203059?v=4';
+  final String defaultImageUrl = 'https://th.bing.com/th/id/OIP.Ii15573m21uyos5SZQTdrAHaHa?rs=1&pid=ImgDetMain';
 
   final List<String> categories = [
     'Services Available',
@@ -60,17 +61,19 @@ class _MyAddsState extends State<MyAdds> {
   }
 
   void _saveData() async {
-    if (_formKey.currentState!.validate() && selectedLocation != null) {
-      _formKey.currentState!.save();
-      String? imageUrl;
-      
-      if (image != null) {
-        imageUrl = await _uploadImage(image!);
-      } else {
-        imageUrl = defaultImageUrl;
-      }
+  if (_formKey.currentState!.validate() && selectedLocation != null) {
+    _formKey.currentState!.save();
+    String? imageUrl;
 
-      await FirebaseFirestore.instance.collection('user_ads').add({
+    if (image != null) {
+      imageUrl = await _uploadImage(image!);
+    } else {
+      imageUrl = defaultImageUrl;
+    }
+
+    try {
+      // Add the ad to Firestore and get the DocumentReference
+      DocumentReference docRef = await FirebaseFirestore.instance.collection('user_ads').add({
         'category': selectedCategory,
         'helpType': selectedHelpType,
         'state': selectedState,
@@ -79,19 +82,32 @@ class _MyAddsState extends State<MyAdds> {
         'mobileNumber': mobileNumber,
         'location': {
           'latitude': selectedLocation!.latitude,
-          'longitude': selectedLocation!.longitude
+          'longitude': selectedLocation!.longitude,
         },
         'imageUrl': imageUrl,
         'timestamp': FieldValue.serverTimestamp(),
         'uid': FirebaseAuth.instance.currentUser!.uid, // Add the user's UID
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Data saved successfully!")));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all fields and select a location!")));
-    }
-  }
+      // Get the auto-generated adId from the DocumentReference
+      String adId = docRef.id;
+      print('Ad created with ID: $adId'); // For debugging
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Data saved successfully!")),
+      );
+    } catch (e) {
+      print("Error saving data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to save data. Please try again.")),
+      );
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Please fill all fields and select a location!")),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
